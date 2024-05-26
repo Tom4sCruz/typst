@@ -282,6 +282,8 @@ impl<'a> FlowLayouter<'a> {
         let align = AlignElem::alignment_in(styles).resolve(styles);
         let leading = ParElem::leading_in(styles);
         let consecutive = self.last_was_par;
+        let before_lines = ParElem::before_in(styles).unwrap_or(0);
+
         let lines = par
             .layout(
                 engine,
@@ -291,6 +293,25 @@ impl<'a> FlowLayouter<'a> {
                 self.regions.expand.x,
             )?
             .into_frames();
+
+        // Logic for the 'before' parameter
+        if before_lines > 0 {
+            let mut total_height = 0;
+            let mut line_count = 0;
+    
+            for line in &lines {
+                total_height += line.height();
+                line_count += 1;
+                if line_count >= before_lines {
+                    break;
+                }
+            }
+    
+            // If the lines don't fit in the current region, move to the next region
+            if !self.regions.size.y.fits(total_height) {
+                before_lines = self.regions.size.y.height() / lines[0].height(); // Adjust to fit
+            }
+        }
 
         // If the first line doesn’t fit in this region, then defer any
         // previous sticky frame to the next region (if available)

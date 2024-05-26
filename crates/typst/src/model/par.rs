@@ -114,6 +114,12 @@ pub struct ParElem {
     #[internal]
     #[variadic]
     pub children: Vec<Content>,
+
+    /// The paragraph's before parameter.
+    /// Maximum number of lines that must be on the current page
+    #[ghost]
+    pub before: Option<usize>,  
+
 }
 
 impl Construct for ParElem {
