@@ -282,7 +282,7 @@ impl<'a> FlowLayouter<'a> {
         let align = AlignElem::alignment_in(styles).resolve(styles);
         let leading = ParElem::leading_in(styles);
         let consecutive = self.last_was_par;
-        let before_lines = ParElem::before_in(styles).unwrap_or(0);
+        let mut before_lines = ParElem::before_in(styles).unwrap_or(0);
 
         let lines = par
             .layout(
@@ -296,9 +296,9 @@ impl<'a> FlowLayouter<'a> {
 
         // Logic for the 'before' parameter
         if before_lines > 0 {
-            let mut total_height = 0;
+            let mut total_height = Abs::raw(0.0);
             let mut line_count = 0;
-    
+
             for line in &lines {
                 total_height += line.height();
                 line_count += 1;
@@ -306,10 +306,11 @@ impl<'a> FlowLayouter<'a> {
                     break;
                 }
             }
-    
+
             // If the lines don't fit in the current region, move to the next region
             if !self.regions.size.y.fits(total_height) {
-                before_lines = self.regions.size.y.height() / lines[0].height(); // Adjust to fit
+                // Adjust to fit
+                before_lines = (self.regions.size.y / lines[0].height()) as usize;
             }
         }
 
